@@ -39,8 +39,9 @@ public class CameraPreview extends CordovaPlugin implements CameraActivity.Camer
   private static final String STOP_CAMERA_ACTION = "stopCamera";
   private static final String PREVIEW_SIZE_ACTION = "setPreviewSize";
   private static final String SWITCH_CAMERA_ACTION = "switchCamera";
-  private static final String TAKE_PICTURE_ACTION = "takePicture";
   private static final String SHOW_CAMERA_ACTION = "showCamera";
+  private static final String TAKE_VIDEO_ACTION = "takeVideo";
+  private static final String TAKE_PICTURE_ACTION = "takePicture";
   private static final String HIDE_CAMERA_ACTION = "hideCamera";
   private static final String TAP_TO_FOCUS = "tapToFocus";
   private static final String SUPPORTED_PICTURE_SIZES_ACTION = "getSupportedPictureSizes";
@@ -66,6 +67,7 @@ public class CameraPreview extends CordovaPlugin implements CameraActivity.Camer
 
   private CameraActivity fragment;
   private CallbackContext takePictureCallbackContext;
+  private CallbackContext takeVideoCallbackContext;
   private CallbackContext setFocusCallbackContext;
   private CallbackContext startCameraCallbackContext;
   private CallbackContext tapBackButtonContext  = null;
@@ -95,6 +97,8 @@ public class CameraPreview extends CordovaPlugin implements CameraActivity.Camer
       }
     } else if (TAKE_PICTURE_ACTION.equals(action)) {
       return takePicture(args.getInt(0), args.getInt(1), args.getInt(2), callbackContext);
+    } else if (TAKE_VIDEO_ACTION.equals(action)) {
+      return takeVideo(args.getInt(0), args.getInt(1), args.getInt(2), callbackContext);
     } else if (COLOR_EFFECT_ACTION.equals(action)) {
       return setColorEffect(args.getString(0), callbackContext);
     } else if (ZOOM_ACTION.equals(action)) {
@@ -302,6 +306,19 @@ public class CameraPreview extends CordovaPlugin implements CameraActivity.Camer
     pluginResult.setKeepCallback(true);
     startCameraCallbackContext.sendPluginResult(pluginResult);
   }
+
+
+  private boolean takeVideo(int width, int height, int quality, CallbackContext callbackContext) {
+    if(this.hasView(callbackContext) == false) {
+      return true;
+    }
+
+    takeVideoCallbackContext = callbackContext;
+    fragment.initRecorder(width, height, quality);
+
+    return true;
+  }
+
 
   private boolean takePicture(int width, int height, int quality, CallbackContext callbackContext) {
     if(this.hasView(callbackContext) == false){

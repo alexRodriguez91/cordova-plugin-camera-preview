@@ -17,6 +17,7 @@ import android.graphics.YuvImage;
 import android.hardware.Camera;
 import android.hardware.Camera.PictureCallback;
 import android.hardware.Camera.ShutterCallback;
+// import android.hardware.Camera.video
 import android.os.Bundle;
 import android.util.Log;
 import android.util.DisplayMetrics;
@@ -69,6 +70,7 @@ public class CameraActivity extends Fragment {
   private View view;
   private Camera.Parameters cameraParameters;
   private Camera mCamera;
+  private MediaRecorder mMediaRecorder;
   private int numberOfCameras;
   private int cameraCurrentlyLocked;
   private int currentQuality;
@@ -231,7 +233,7 @@ public class CameraActivity extends Fragment {
             @Override
             public boolean onKey(android.view.View v, int keyCode, android.view.KeyEvent event) {
 
-              if (keyCode == android.view.KeyEvent.KEYCODE_BACK) {
+              if (keyCode  == android.view.KeyEvent.KEYCODE_BACK) {
                 eventListener.onBackButton();
                 return true;
               }
@@ -524,6 +526,59 @@ public class CameraActivity extends Fragment {
     return size;
   }
 
+  
+    /* Init the MediaRecorder, the order the methods are called is vital to
+     * its correct functioning */
+    public void initRecorder() throws IOException {
+      // It is very important to unlock the camera before doing setCamera
+      // or it will results in a black preview
+
+      if(mCamera == null) {
+          int camId = Camera.CameraInfo.CAMERA_FACING_FRONT;
+
+          if (Camera.getNumberOfCameras() > 1
+                  && camId < Camera.getNumberOfCameras() - 1) {
+              // startCamera(camId + 1);
+              mCamera = Camera.open(camId + 1);
+          } else {
+              // startCamera(Camera.CameraInfo.CAMERA_FACING_BACK);
+              if (Camera.getNumberOfCameras() > 1 && camId == 1) {
+                mCamera = Camera.open(camId);
+              } else {
+                mCamera = Camera.open();
+              }
+              mCamera.setDisplayOrientation(0);
+          }
+          mCamera.unlock();
+
+      }
+      if(mMediaRecorder == null)
+          mMediaRecorder = new MediaRecorder();
+      // mMediaRecorder.setPreviewDisplay(surface);
+      mMediaRecorder.setCamera(mCamera);
+      // mMediaRecorder.setVideoSource(MediaRecorder.VideoSource.DEFAULT);
+      mMediaRecorder.setVideoSource(MediaRecorder.VideoSource.CAMERA);
+      mMediaRecorder.setAudioSource(MediaRecorder.AudioSource.MIC);
+      mMediaRecorder.setOutputFormat(MediaRecorder.OutputFormat.MPEG_4);
+      mMediaRecorder.setVideoEncoder(MediaRecorder.VideoEncoder.H264);
+      mMediaRecorder.setAudioEncoder(MediaRecorder.AudioEncoder.AAC);
+      mMediaRecorder.setVideoSize(Constants.CAMERA_VIDEO_SIZE_WIDTH, Constants.CAMERA_VIDEO_SIZE_HEIGHT);
+      mMediaRecorder.setMaxDuration(Constants.CAMERA_VIDEO_TIME_LIMIT_RECORDING);
+      mMediaRecorder.setVideoFrameRate(Constants.CAMERA_VIDEO_FRAME_RATE);
+      //mMediaRecorder.setOutputFile(Environment.getExternalStorageDirectory().toString().concat(VIDEO_PATH_NAME));
+      mMediaRecorder.setOutputFile(fileName);
+      mMediaRecorder.setOnInfoListener(this);
+      try {
+          //mMediaRecorder.setPreviewDisplay(mHolder.getSurface());
+          mMediaRecorder.prepare();
+      } catch (IllegalStateException e) {
+          // This is thrown if the previous calls are not called with the
+          // proper order
+          e.printStackTrace();
+      }
+      mInitSuccesful = true;
+  }
+
   public void takePicture(final int width, final int height, final int quality){
     Log.d(TAG, "CameraPreview takePicture width: " + width + ", height: " + height + ", quality: " + quality);
 
@@ -575,7 +630,7 @@ public class CameraActivity extends Fragment {
         Rect meteringRect = calculateTapArea(pointX, pointY, 1.5f);
         parameters.setMeteringAreas(Arrays.asList(new Camera.Area(meteringRect, 1000)));
       }
-
+      
       try {
         setCameraParameters(parameters);
         mCamera.autoFocus(callback);

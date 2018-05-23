@@ -27,6 +27,12 @@ interface CameraPreviewTakePictureOptions {
   quality?: number;
   width?: number;
 }
+interface CameraPreviewTakeVideoOptions {
+  height?: number;
+  quality?: number;
+  width?: number;
+  time?: number;  
+}
 
 interface CameraPreviewPreviewSizeDimension {
   height?: number;
@@ -40,6 +46,7 @@ interface CameraPreview {
   hide(onSuccess?:CameraPreviewSuccessHandler, onError?:CameraPreviewErrorHandler):void;
   show(onSuccess?:CameraPreviewSuccessHandler, onError?:CameraPreviewErrorHandler):void;
   takePicture(options?:CameraPreviewTakePictureOptions|CameraPreviewSuccessHandler, onSuccess?:CameraPreviewSuccessHandler|CameraPreviewErrorHandler, onError?:CameraPreviewErrorHandler):void;
+  takeVideo(options?:CameraPreviewTakeVideoOptions|CameraPreviewSuccessHandler, onSuccess?:CameraPreviewSuccessHandler|CameraPreviewErrorHandler, onError?:CameraPreviewErrorHandler):void;
   setColorEffect(effect:CameraPreviewColorEffect|string, onSuccess?:CameraPreviewSuccessHandler, onError?:CameraPreviewErrorHandler):void;
   setZoom(zoom?:number, onSuccess?:CameraPreviewSuccessHandler, onError?:CameraPreviewErrorHandler):void;
   getMaxZoom(onSuccess?:CameraPreviewSuccessHandler, onError?:CameraPreviewErrorHandler):void;
