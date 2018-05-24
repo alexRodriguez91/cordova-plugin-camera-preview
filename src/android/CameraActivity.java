@@ -18,6 +18,7 @@ import android.hardware.Camera;
 import android.hardware.Camera.PictureCallback;
 import android.hardware.Camera.ShutterCallback;
 import android.media.MediaRecorder;
+import android.media.CamcorderProfile;
 // import android.hardware.Camera.video
 import android.os.Bundle;
 import android.util.Log;
@@ -527,10 +528,25 @@ public class CameraActivity extends Fragment {
     return size;
   }
 
-  
+  private void releaseMediaRecorder(){
+    if (mMediaRecorder != null) {
+        mMediaRecorder.reset();   // clear recorder configuration
+        mMediaRecorder.release(); // release the recorder object
+        mMediaRecorder = null;
+        mCamera.lock();           // lock camera for later use
+    }
+}
+
+private void releaseCamera(){
+    if (mCamera != null){
+        mCamera.release();        // release the camera for other applications
+        mCamera = null;
+    }
+}
+
     /* Init the MediaRecorder, the order the methods are called is vital to
      * its correct functioning */
-    public void initRecorder(int width, int heigth, int quality) throws IOException {
+    public boolean initRecorder(int width, int heigth, int quality) throws IOException {
       // It is very important to unlock the camera before doing setCamera
       // or it will results in a black preview
       mMediaRecorder = new MediaRecorder();
@@ -548,10 +564,10 @@ public class CameraActivity extends Fragment {
       mMediaRecorder.setSize(width, heigth);
   
       // Step 4: Set output file
-      mMediaRecorder.setOutputFile(getOutputMediaFile(MEDIA_TYPE_VIDEO).toString());
+      mMediaRecorder.setOutputFile(cordova.file.applicationDirectory + "fileOutput.mp4");
   
       // Step 5: Set the preview output
-      mMediaRecorder.setPreviewDisplay(mPreview.getHolder().getSurface());
+      // mMediaRecorder.setPreviewDisplay(mPreview.getHolder().getSurface());
   
       // Step 6: Prepare configured MediaRecorder
       try {
