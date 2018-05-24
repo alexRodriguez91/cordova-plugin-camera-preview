@@ -561,10 +561,10 @@ private void releaseCamera(){
   
       // Step 3: Set a CamcorderProfile (requires API Level 8 or higher)
       mMediaRecorder.setProfile(CamcorderProfile.get(CamcorderProfile.QUALITY_HIGH));
-      mMediaRecorder.setSize(width, heigth);
+      mMediaRecorder.setVideoSize(width, heigth);
   
       // Step 4: Set output file
-      mMediaRecorder.setOutputFile(cordova.file.applicationDirectory + "fileOutput.mp4");
+      mMediaRecorder.setOutputFile( videoFile = Environment.getExternalStorageDirectory() + "/" + formatter.format(new Date()) + ".mp4");
   
       // Step 5: Set the preview output
       // mMediaRecorder.setPreviewDisplay(mPreview.getHolder().getSurface());
