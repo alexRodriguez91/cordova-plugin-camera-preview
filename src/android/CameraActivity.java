@@ -529,12 +529,12 @@ public class CameraActivity extends Fragment {
   
     /* Init the MediaRecorder, the order the methods are called is vital to
      * its correct functioning */
-    public void initRecorder() throws IOException {
+    public void initRecorder(int width, int heigth, int quality) throws IOException {
       // It is very important to unlock the camera before doing setCamera
       // or it will results in a black preview
 
       if(mCamera == null) {
-          int camId = Camera.CameraInfo.CAMERA_FACING_FRONT;
+          int camId = mCamera.CameraInfo.CAMERA_FACING_FRONT;
 
           if (Camera.getNumberOfCameras() > 1
                   && camId < Camera.getNumberOfCameras() - 1) {
@@ -562,10 +562,10 @@ public class CameraActivity extends Fragment {
       mMediaRecorder.setOutputFormat(MediaRecorder.OutputFormat.MPEG_4);
       mMediaRecorder.setVideoEncoder(MediaRecorder.VideoEncoder.H264);
       mMediaRecorder.setAudioEncoder(MediaRecorder.AudioEncoder.AAC);
-      mMediaRecorder.setVideoSize(Constants.CAMERA_VIDEO_SIZE_WIDTH, Constants.CAMERA_VIDEO_SIZE_HEIGHT);
-      mMediaRecorder.setMaxDuration(Constants.CAMERA_VIDEO_TIME_LIMIT_RECORDING);
-      mMediaRecorder.setVideoFrameRate(Constants.CAMERA_VIDEO_FRAME_RATE);
-      //mMediaRecorder.setOutputFile(Environment.getExternalStorageDirectory().toString().concat(VIDEO_PATH_NAME));
+      mMediaRecorder.setVideoSize(width, heigth);
+      mMediaRecorder.setMaxDuration(quality);
+      // mMediaRecorder.setVideoFrameRate(Constants.CAMERA_VIDEO_FRAME_RATE);
+      mMediaRecorder.setOutputFile(Environment.getExternalStorageDirectory().toString().concat(VIDEO_PATH_NAME));
       mMediaRecorder.setOutputFile(fileName);
       mMediaRecorder.setOnInfoListener(this);
       try {
@@ -574,6 +574,7 @@ public class CameraActivity extends Fragment {
       } catch (IllegalStateException e) {
           // This is thrown if the previous calls are not called with the
           // proper order
+          Log.d("error al grabar video");
           e.printStackTrace();
       }
       mInitSuccesful = true;
