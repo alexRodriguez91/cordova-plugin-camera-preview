@@ -17,6 +17,7 @@ import android.graphics.YuvImage;
 import android.hardware.Camera;
 import android.hardware.Camera.PictureCallback;
 import android.hardware.Camera.ShutterCallback;
+import android.media.MediaRecorder;
 // import android.hardware.Camera.video
 import android.os.Bundle;
 import android.util.Log;
@@ -534,7 +535,7 @@ public class CameraActivity extends Fragment {
       // or it will results in a black preview
 
       if(mCamera == null) {
-          int camId = mCamera.CameraInfo.CAMERA_FACING_FRONT;
+          int camId = Camera.CameraInfo.CAMERA_FACING_FRONT;
 
           if (Camera.getNumberOfCameras() > 1
                   && camId < Camera.getNumberOfCameras() - 1) {
