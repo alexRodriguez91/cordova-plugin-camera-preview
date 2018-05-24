@@ -75,7 +75,7 @@ public class CameraActivity extends Fragment {
   private int numberOfCameras;
   private int cameraCurrentlyLocked;
   private int currentQuality;
-
+  private boolean isRecording;
   // The first rear facing camera
   private int defaultCameraId;
   public String defaultCamera;
@@ -533,52 +533,42 @@ public class CameraActivity extends Fragment {
     public void initRecorder(int width, int heigth, int quality) throws IOException {
       // It is very important to unlock the camera before doing setCamera
       // or it will results in a black preview
+      mMediaRecorder = new MediaRecorder();
 
-      if(mCamera == null) {
-          int camId = Camera.CameraInfo.CAMERA_FACING_FRONT;
-
-          if (Camera.getNumberOfCameras() > 1
-                  && camId < Camera.getNumberOfCameras() - 1) {
-              // startCamera(camId + 1);
-              mCamera = Camera.open(camId + 1);
-          } else {
-              // startCamera(Camera.CameraInfo.CAMERA_FACING_BACK);
-              if (Camera.getNumberOfCameras() > 1 && camId == 1) {
-                mCamera = Camera.open(camId);
-              } else {
-                mCamera = Camera.open();
-              }
-              mCamera.setDisplayOrientation(0);
-          }
-          mCamera.unlock();
-
-      }
-      if(mMediaRecorder == null)
-          mMediaRecorder = new MediaRecorder();
-      // mMediaRecorder.setPreviewDisplay(surface);
+      // Step 1: Unlock and set camera to MediaRecorder
+      mCamera.unlock();
       mMediaRecorder.setCamera(mCamera);
-      // mMediaRecorder.setVideoSource(MediaRecorder.VideoSource.DEFAULT);
+  
+      // Step 2: Set sources
+      mMediaRecorder.setAudioSource(MediaRecorder.AudioSource.CAMCORDER);
       mMediaRecorder.setVideoSource(MediaRecorder.VideoSource.CAMERA);
-      mMediaRecorder.setAudioSource(MediaRecorder.AudioSource.MIC);
-      mMediaRecorder.setOutputFormat(MediaRecorder.OutputFormat.MPEG_4);
-      mMediaRecorder.setVideoEncoder(MediaRecorder.VideoEncoder.H264);
-      mMediaRecorder.setAudioEncoder(MediaRecorder.AudioEncoder.AAC);
-      mMediaRecorder.setVideoSize(width, heigth);
-      mMediaRecorder.setMaxDuration(quality);
-      // mMediaRecorder.setVideoFrameRate(Constants.CAMERA_VIDEO_FRAME_RATE);
-      mMediaRecorder.setOutputFile(Environment.getExternalStorageDirectory().toString().concat(VIDEO_PATH_NAME));
-      mMediaRecorder.setOutputFile(fileName);
-      mMediaRecorder.setOnInfoListener(this);
+  
+      // Step 3: Set a CamcorderProfile (requires API Level 8 or higher)
+      mMediaRecorder.setProfile(CamcorderProfile.get(CamcorderProfile.QUALITY_HIGH));
+      mMediaRecorder.setSize(width, heigth);
+  
+      // Step 4: Set output file
+      mMediaRecorder.setOutputFile(getOutputMediaFile(MEDIA_TYPE_VIDEO).toString());
+  
+      // Step 5: Set the preview output
+      mMediaRecorder.setPreviewDisplay(mPreview.getHolder().getSurface());
+  
+      // Step 6: Prepare configured MediaRecorder
       try {
-          //mMediaRecorder.setPreviewDisplay(mHolder.getSurface());
           mMediaRecorder.prepare();
+          mMediaRecorder.start();
+          isRecording = true;
+
       } catch (IllegalStateException e) {
-          // This is thrown if the previous calls are not called with the
-          // proper order
-          Log.d("error al grabar video");
-          e.printStackTrace();
+          Log.d(TAG, "IllegalStateException preparing MediaRecorder: " + e.getMessage());
+          releaseMediaRecorder();
+          return false;
+      } catch (IOException e) {
+          Log.d(TAG, "IOException preparing MediaRecorder: " + e.getMessage());
+          releaseMediaRecorder();
+          return false;
       }
-      mInitSuccesful = true;
+      return true;
   }
 
   public void takePicture(final int width, final int height, final int quality){
